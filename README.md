@@ -1,4 +1,7 @@
 # jactor-shared
+
+Project is archibed as module is now at [jactor-modules/shared](https://github.com/jactor-rises/jactor-modules/tree/main/shared)
+
 [![build and deploy maven artifact](https://github.com/jactor-rises/jactor-shared/actions/workflows/build.yaml/badge.svg)](https://github.com/jactor-rises/jactor-shared/actions/workflows/build.yaml)
 
 Shared beans between [jactor-persistence](https://github.com/jactor-rises/jactor-persistencehttps://github.com/jactor-rises/jactor-web) and
