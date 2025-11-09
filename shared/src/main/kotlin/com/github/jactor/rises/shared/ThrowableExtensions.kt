@@ -1,4 +1,4 @@
-package com.github.jactor.shared
+package com.github.jactor.rises.shared
 
 import org.springframework.web.client.HttpClientErrorException
 
