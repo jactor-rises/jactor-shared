@@ -1,6 +1,6 @@
-package com.github.jactor.shared
+package com.github.jactor.rises.shared
 
-import com.github.jactor.shared.SpringBeanNames.Companion.NO_OF_BEANS_ON_LINE
+import com.github.jactor.rises.shared.SpringBeanNames.Companion.NO_OF_BEANS_ON_LINE
 
 @JvmRecord
 data class SpringBeanNames(

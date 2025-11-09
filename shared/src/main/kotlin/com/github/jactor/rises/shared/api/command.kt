@@ -1,4 +1,4 @@
-package com.github.jactor.shared.api
+package com.github.jactor.rises.shared.api
 
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime
