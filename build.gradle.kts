@@ -1,6 +1,8 @@
 plugins {
-    kotlin("jvm") version libs.versions.kotlin
     `java-library`
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.ktlint)
+    alias(libs.plugins.versions)
 }
 
 group = "com.github.jactor-rises"
@@ -8,6 +10,8 @@ version = "0.0.1-SNAPSHOT"
 
 dependencies {
     implementation(libs.springdoc.openapi.ui)
+    implementation(libs.fasterxml.core)
+    implementation(libs.fasterxml.datatype)
 
     testImplementation(libs.assertk)
     testImplementation(libs.junit.jupiter)
