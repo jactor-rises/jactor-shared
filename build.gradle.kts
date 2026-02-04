@@ -3,10 +3,11 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.versions)
+    `maven-publish`
 }
 
 group = "com.github.jactor-rises"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.0-SNAPSHOT"
 
 dependencies {
     implementation(libs.springdoc.openapi.ui)
@@ -22,6 +23,7 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(libs.versions.jvm.get().toInt())
     }
+    withSourcesJar()
 }
 
 repositories {
@@ -39,5 +41,31 @@ tasks.withType<Test> {
     testLogging {
         events("passed", "skipped", "failed")
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}
+
+tasks.register("printVersion") {
+    doLast {
+        println(project.version)
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            artifactId = rootProject.name
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            val repo = System.getenv("GITHUB_REPOSITORY")
+            url = uri("https://maven.pkg.github.com/$repo")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 }
