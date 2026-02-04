@@ -40,11 +40,30 @@ jobs:
 
       - name: Compute release tag
         id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GROUP_ID: com.github.jactor-rises
+          ARTIFACT_ID: jactor-shared
         run: |
+          set -euo pipefail
+          OWNER=${GITHUB_REPOSITORY%%/*}
+          PACKAGE_NAME="${GROUP_ID}.${ARTIFACT_ID}"
+          PKG_ENCODED=$(printf '%s' "${PACKAGE_NAME}" | jq -sRr @uri)
+
           TAG=$(./.github/scripts/bump_tag.sh --dry-run)
           VERSION=${TAG#v}
+          EXISTS=false
+
+          if gh api "/users/${OWNER}/packages/maven/${PKG_ENCODED}/versions" --paginate > /tmp/versions.json 2>/dev/null; then
+            if jq -e --arg version "${VERSION}" '.[] | select(.name == $version)' /tmp/versions.json > /dev/null; then
+              echo "Warning: package version ${VERSION} already exists"
+              EXISTS=true
+            fi
+          fi
+
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "exists=${EXISTS}" >> "$GITHUB_OUTPUT"
 
       - name: Create tag
         id: create_tag
@@ -61,7 +80,7 @@ jobs:
           echo "created=true" >> "$GITHUB_OUTPUT"
 
       - name: Publish to GitHub Packages
-        if: steps.create_tag.outputs.created == 'true'
+        if: steps.create_tag.outputs.created == 'true' && steps.release.outputs.exists != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew -Pversion="${{ steps.release.outputs.version }}" publish
