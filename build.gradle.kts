@@ -6,8 +6,10 @@ plugins {
     `maven-publish`
 }
 
+val cliVersion = providers.gradleProperty("version").orNull?.trim()
+
 group = "com.github.jactor-rises"
-version = "0.0.0-SNAPSHOT"
+version = cliVersion.takeIf { !it.isNullOrBlank() } ?: "0.0.0-SNAPSHOT"
 
 dependencies {
     implementation(libs.springdoc.openapi.ui)
