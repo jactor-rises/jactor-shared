@@ -1,4 +1,4 @@
-name: tag-and-publish
+name: release
 
 on:
   workflow_run:
