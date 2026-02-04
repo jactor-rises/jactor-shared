@@ -28,7 +28,7 @@ jobs:
       - name: Build and test
         run: ./gradlew clean ktlintCheck test build
 
-  verify_tag_script:
+  verify-tagging:
     if: github.ref == 'refs/heads/main'
     needs: build-test
     runs-on: ubuntu-latest
