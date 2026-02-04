@@ -27,16 +27,3 @@ jobs:
 
       - name: Build and test
         run: ./gradlew clean ktlintCheck test build
-
-  verify-tagging:
-    if: github.ref == 'refs/heads/main'
-    needs: build-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Verify tag script (dry run)
-        run: ./.github/scripts/bump_tag.sh --dry-run --verbose
