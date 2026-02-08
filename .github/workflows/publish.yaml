@@ -38,8 +38,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Compute release tag
-        id: release
+      - name: Git tag
+        id: git-tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GROUP_ID: com.github.jactor-rises
@@ -66,9 +66,9 @@ jobs:
           echo "exists=${EXISTS}" >> "$GITHUB_OUTPUT"
 
       - name: Create tag
-        id: create_tag
+        id: create-tag
         env:
-          TAG: ${{ steps.release.outputs.tag }}
+          TAG: ${{ steps.git-tag.outputs.tag }}
         run: |
           if git rev-parse "${TAG}" >/dev/null 2>&1; then
             echo "Tag ${TAG} already exists, skipping"
@@ -80,7 +80,7 @@ jobs:
           echo "created=true" >> "$GITHUB_OUTPUT"
 
       - name: Publish to GitHub Packages
-        if: steps.create_tag.outputs.created == 'true' && steps.release.outputs.exists != 'true'
+        if: steps.create-tag.outputs.created == 'true' && steps.git-tag.outputs.exists != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew -Pversion="${{ steps.release.outputs.version }}" publish
+        run: ./gradlew -Pversion="${{ steps.git-tag.outputs.version }}" publish
