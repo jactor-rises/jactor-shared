@@ -83,4 +83,4 @@ jobs:
         if: steps.create-tag.outputs.created == 'true' && steps.git-tag.outputs.exists != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew -Pversion="${{ steps.git-tag.outputs.version }}" publish
+        run: ./gradlew -Pversion="${{ steps.git-tag.outputs.version }}" publish --stacktrace
