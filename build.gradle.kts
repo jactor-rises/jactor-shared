@@ -7,8 +7,9 @@ plugins {
 }
 
 val cliVersion = providers.gradleProperty("version").orNull?.trim()
+val cliGroup = providers.gradleProperty("group").orNull?.trim()
 
-group = "com.github.jactor-rises"
+group = cliGroup.takeIf { !it.isNullOrBlank() } ?: "com.github.jactor-rises"
 version = cliVersion.takeIf { !it.isNullOrBlank() } ?: "0.0.0-SNAPSHOT"
 
 dependencies {
@@ -49,5 +50,16 @@ tasks.withType<Test> {
 tasks.register("printVersion") {
     doLast {
         println(project.version)
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            groupId = project.group.toString()
+            artifactId = project.name
+            version = project.version.toString()
+        }
     }
 }
