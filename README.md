@@ -5,6 +5,8 @@
 Shared beans between [jactor-persistence](https://github.com/jactor-rises/jactor-modules/tree/main/persistence) and
 [jactor-web](https://github.com/jactor-rises/jactor-modules/tree/main/web) http api and json-serialization
 
+will be available using [jitpack.io](https://jitpack.io/#jactor-rises/jactor-shared)
+
 ## Http api
 
 ### Dto
