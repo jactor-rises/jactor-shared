@@ -6,10 +6,8 @@ plugins {
     `maven-publish`
 }
 
+group = "com.github.jactor-rises"
 val cliVersion = providers.gradleProperty("version").orNull?.trim()
-val cliGroup = providers.gradleProperty("group").orNull?.trim()
-
-group = cliGroup.takeIf { !it.isNullOrBlank() } ?: "com.github.jactor-rises"
 version = cliVersion.takeIf { !it.isNullOrBlank() } ?: "0.0.0-SNAPSHOT"
 
 dependencies {
@@ -31,6 +29,7 @@ java {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 kotlin {
@@ -43,6 +42,7 @@ tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
+        showStandardStreams = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
 }
