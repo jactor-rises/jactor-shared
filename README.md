@@ -17,6 +17,6 @@ Data transfer objects for the data model of jactor-persistence
 
 Command objects used for manipulation the data model of jactor-persistence
 
-### Serialization
+## Serialization
 
 ObjectMapper for mapping json to/from dto and command objects
