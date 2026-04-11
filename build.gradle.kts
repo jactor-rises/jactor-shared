@@ -24,12 +24,18 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(libs.versions.jvm.get().toInt())
     }
+
     withSourcesJar()
 }
 
 repositories {
+    gradlePluginPortal()
     mavenCentral()
     mavenLocal()
+}
+
+tasks.register("printVersion") {
+    doLast { println(project.version) }
 }
 
 kotlin {
@@ -38,18 +44,32 @@ kotlin {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-        showStandardStreams = true
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+tasks {
+    val ktlintFormatAndCheck by registering {
+        dependsOn("ktlintFormat")
+        doLast {
+            ProcessBuilder("${project.rootDir}/gradlew", "ktlintCheck")
+                .directory(project.rootDir).inheritIO()
+                .start().waitFor() // venter på at prosessen skal fullføre før vi går videre til testene
+        }
     }
-}
 
-tasks.register("printVersion") {
-    doLast {
-        println(project.version)
+    matching { it.name.startsWith("runKtlintCheck") }.configureEach {
+        mustRunAfter(project.tasks.matching { it.name.startsWith("runKtlintFormat") })
+    }
+
+    test {
+        useJUnitPlatform()
+
+        jvmArgs("--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED")
+        exclude("**/RunCucumberTest*")
+        dependsOn(ktlintFormatAndCheck)
+
+        testLogging {
+            events("passed", "skipped", "failed")
+            showStandardStreams = true
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        }
     }
 }
 

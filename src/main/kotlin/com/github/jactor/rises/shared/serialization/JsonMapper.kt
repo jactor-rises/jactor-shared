@@ -7,10 +7,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import java.text.SimpleDateFormat
 
 object JsonMapper {
-    val objectMapper: ObjectMapper =
-        ObjectMapper()
-            .registerModule(JavaTimeModule())
-            .registerModule(Jdk8Module())
-            .setDateFormat(SimpleDateFormat("yyyy-MM-dd"))
-            .setDefaultPropertyInclusion(Include.NON_NULL)
+    val objectMapper: ObjectMapper = ObjectMapper()
+        .registerModule(JavaTimeModule())
+        .registerModule(Jdk8Module())
+        .setDateFormat(SimpleDateFormat("yyyy-MM-dd"))
+        .setDefaultPropertyInclusion(Include.NON_NULL)
 }
