@@ -45,17 +45,13 @@ kotlin {
 }
 
 tasks {
-    val ktlintFormatAndCheck by registering {
-        dependsOn("ktlintFormat")
-        doLast {
-            ProcessBuilder("${project.rootDir}/gradlew", "ktlintCheck")
-                .directory(project.rootDir).inheritIO()
-                .start().waitFor() // venter på at prosessen skal fullføre før vi går videre til testene
-        }
+    val ktlintFormatAndCheck = register("ktlintFormatAndCheck") {
+        description = "Run ktlintFormat and ktlintCheck before testing (and commit)"
+        dependsOn("ktlintFormat", "ktlintCheck")
     }
 
-    matching { it.name.startsWith("runKtlintCheck") }.configureEach {
-        mustRunAfter(project.tasks.matching { it.name.startsWith("runKtlintFormat") })
+    named("ktlintCheck") {
+        mustRunAfter("ktlintFormat")
     }
 
     test {
