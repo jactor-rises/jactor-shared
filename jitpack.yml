@@ -1,3 +1,0 @@
-# JitPack build configuration file use jdk 21
-jdk:
-  - openjdk21
