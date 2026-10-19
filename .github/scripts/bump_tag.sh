@@ -8,8 +8,8 @@ Usage: .github/scripts/bump_tag.sh [--dry-run] [--push] [--verbose]
 Creates a new semver tag based on existing tags and commit messages.
 
 Version bump logic:
-  - MAJOR: If Gradle major version is 1 ahead of latest tag, bump major and reset minor/patch to 0.
-           Fails if Gradle major is 2+ ahead or behind the latest tag.
+  - MAJOR: If Gradle major version is ahead of latest tag, bump major and reset minor/patch to 0.
+           Fails if Gradle major is behind the latest tag.
   - MINOR: If commit message contains "new-feature", bump minor and reset patch to 0.
   - PATCH: Otherwise, bump patch version.
 
@@ -63,17 +63,14 @@ if [[ -n "$latest_tag" ]]; then
 
   major_diff=$((gradle_major - latest_major))
 
-  if [[ $major_diff -ge 2 ]]; then
-    echo "Version from build.gradle.kts ($gradle_major) is 2 or more ahead of latest tag major version ($latest_major)"
+  if [[ $major_diff -lt 0 ]]; then
+    echo "Error: Gradle major version ($gradle_major) is behind latest tag major version ($latest_major)"
     exit 1
-  elif [[ $major_diff -eq 1 ]]; then
+  elif [[ $major_diff -ge 1 ]]; then
     # Bump to new major version, reset minor and patch
     major=$gradle_major
     minor=0
     patch=0
-  elif [[ $major_diff -lt 0 ]]; then
-    echo "Error: Gradle major version ($gradle_major) is behind latest tag major version ($latest_major)"
-    exit 1
   elif $BUMP_MINOR; then
     # Bump minor version, reset patch to 0
     major=$latest_major
@@ -108,7 +105,7 @@ if $VERBOSE; then
   else
     echo "Latest tag: (none)"
   fi
-  if [[ -n "$latest_tag" ]] && [[ $major_diff -eq 1 ]]; then
+  if [[ -n "$latest_tag" ]] && [[ $major_diff -ge 1 ]]; then
     echo "Bump type: MAJOR (gradle version ahead)"
   elif $BUMP_MINOR; then
     echo "Bump type: MINOR (new-feature)"

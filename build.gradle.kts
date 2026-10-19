@@ -8,7 +8,7 @@ plugins {
 
 group = "com.github.jactor-rises"
 val cliVersion = providers.gradleProperty("version").orNull?.trim()
-version = cliVersion.takeIf { !it.isNullOrBlank() } ?: "0.0.0-SNAPSHOT"
+version = cliVersion.takeIf { !it.isNullOrBlank() } ?: "2.0.0-SNAPSHOT"
 
 dependencies {
     implementation(libs.springdoc.openapi.ui)
@@ -76,6 +76,46 @@ publishing {
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()
+
+            pom {
+                name.set("jactor-shared")
+                description.set("Shared library for Jactor Rises")
+                url.set("https://github.com/jactor-rises/jactor-shared")
+
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("jactor-rises")
+                        name.set("Jactor Rises")
+                        email.set("contact@jactor-rises.com")
+                    }
+                }
+
+                scm {
+                    connection.set("scm:git:https://github.com/jactor-rises/jactor-shared.git")
+                    developerConnection.set("scm:git:https://github.com/jactor-rises/jactor-shared.git")
+                    url.set("https://github.com/jactor-rises/jactor-shared")
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            val repo = System.getenv("GITHUB_REPOSITORY") ?: "jactor-rises/jactor-shared"
+            url = uri("https://maven.pkg.github.com/$repo")
+
+            credentials {
+                username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as? String
+                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key") as? String
+            }
         }
     }
 }
