@@ -1,4 +1,4 @@
-name: release
+name: tag
 
 on:
     workflow_run:
@@ -6,14 +6,14 @@ on:
             - build-test
         types:
             - completed
+    workflow_dispatch: { }
 
 permissions:
     contents: write
-    packages: write
 
 jobs:
-    tag-n-release:
-        if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    tag:
+        if: (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || github.event_name == 'workflow_dispatch'
         runs-on: ubuntu-latest
         steps:
             -   name: Checkout
@@ -21,7 +21,7 @@ jobs:
                 with:
                     fetch-depth: 0
                     fetch-tags: true
-                    ref: ${{ github.event.workflow_run.head_sha }}
+                    ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
             -   name: Check for releasable changes
                 id: check-changes
@@ -72,37 +72,15 @@ jobs:
                     git config user.name "github-actions[bot]"
                     git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            -   name: Git tag
+            -   name: Calculate tag
                 if: steps.check-changes.outputs.release_needed == 'true'
                 id: git-tag
-                env:
-                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                    GROUP_ID: com.github.jactor-rises
-                    ARTIFACT_ID: jactor-shared
                 run: |
                     set -euo pipefail
-                    OWNER=${GITHUB_REPOSITORY%%/*}
-                    PACKAGE_NAME="${GROUP_ID}.${ARTIFACT_ID}"
-                    PKG_ENCODED=$(printf '%s' "${PACKAGE_NAME}" | jq -sRr @uri)
-
                     TAG=$(./.github/scripts/bump_tag.sh --dry-run)
-                    VERSION=${TAG#v}
-                    EXISTS=false
-
-                    if ! gh api "/orgs/${OWNER}/packages/maven/${PKG_ENCODED}/versions" --paginate > /tmp/versions.json 2>/dev/null; then
-                      gh api "/users/${OWNER}/packages/maven/${PKG_ENCODED}/versions" --paginate > /tmp/versions.json 2>/dev/null || true
-                    fi
-
-                    if [[ -f /tmp/versions.json ]] && jq -e --arg version "${VERSION}" '.[] | select(.name == $version)' /tmp/versions.json > /dev/null 2>&1; then
-                      echo "Warning: package version ${VERSION} already exists in GitHub Packages"
-                      EXISTS=true
-                    fi
-
                     echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-                    echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-                    echo "exists=${EXISTS}" >> "$GITHUB_OUTPUT"
 
-            -   name: Create tag
+            -   name: Create and push tag
                 if: steps.check-changes.outputs.release_needed == 'true'
                 id: create-tag
                 env:
@@ -110,29 +88,7 @@ jobs:
                 run: |
                     if git rev-parse "${TAG}" >/dev/null 2>&1; then
                       echo "Tag ${TAG} already exists"
-                      echo "created=true" >> "$GITHUB_OUTPUT"
                       exit 0
                     fi
                     git tag -a "${TAG}" -m "Release ${TAG}"
                     git push origin "${TAG}"
-                    echo "created=true" >> "$GITHUB_OUTPUT"
-
-            -   name: Publish to GitHub Packages
-                if: steps.check-changes.outputs.release_needed == 'true' && steps.git-tag.outputs.exists != 'true'
-                continue-on-error: true
-                env:
-                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                run: ./gradlew -Pversion="${{ steps.git-tag.outputs.version }}" publish --stacktrace
-
-            -   name: Create GitHub Release
-                if: steps.check-changes.outputs.release_needed == 'true'
-                env:
-                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                    TAG: ${{ steps.git-tag.outputs.tag }}
-                run: |
-                    ./gradlew -Pversion="${{ steps.git-tag.outputs.version }}" assemble
-                    if gh release view "${TAG}" >/dev/null 2>&1; then
-                      echo "GitHub release ${TAG} already exists"
-                    else
-                      gh release create "${TAG}" build/libs/*.jar --generate-notes --title "${TAG}"
-                    fi
