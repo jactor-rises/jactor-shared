@@ -27,11 +27,22 @@ jobs:
                 id: check-changes
                 run: |
                     set -euo pipefail
-                    LATEST_TAG=$(git tag --list "v[0-9]*.[0-9]*.[0-9]*" | LC_ALL=C sort -V | tail -n 1)
-                    if [[ -n "${LATEST_TAG}" ]]; then
-                      CHANGED_FILES=$(git diff --name-only "${LATEST_TAG}"..HEAD -- src/main gradle/libs.versions.toml build.gradle.kts)
+                    HEAD_TAG=$(git tag --points-at HEAD "v[0-9]*.[0-9]*.[0-9]*" | LC_ALL=C sort -V | tail -n 1)
+
+                    if [[ -n "${HEAD_TAG}" ]]; then
+                      PREV_TAG=$(git tag --list "v[0-9]*.[0-9]*.[0-9]*" | LC_ALL=C sort -V | awk -v tag="${HEAD_TAG}" '$0 == tag {print prev; exit} {prev = $0}')
+                      if [[ -n "${PREV_TAG}" ]]; then
+                        CHANGED_FILES=$(git diff --name-only "${PREV_TAG}"..HEAD -- src/main gradle/libs.versions.toml build.gradle.kts)
+                      else
+                        CHANGED_FILES=$(git ls-files src/main gradle/libs.versions.toml build.gradle.kts)
+                      fi
                     else
-                      CHANGED_FILES=$(git ls-files src/main gradle/libs.versions.toml build.gradle.kts)
+                      LATEST_TAG=$(git tag --list "v[0-9]*.[0-9]*.[0-9]*" | LC_ALL=C sort -V | tail -n 1)
+                      if [[ -n "${LATEST_TAG}" ]]; then
+                        CHANGED_FILES=$(git diff --name-only "${LATEST_TAG}"..HEAD -- src/main gradle/libs.versions.toml build.gradle.kts)
+                      else
+                        CHANGED_FILES=$(git ls-files src/main gradle/libs.versions.toml build.gradle.kts)
+                      fi
                     fi
 
                     if [[ -n "${CHANGED_FILES}" ]]; then
@@ -39,7 +50,7 @@ jobs:
                       echo "${CHANGED_FILES}"
                       echo "release_needed=true" >> "$GITHUB_OUTPUT"
                     else
-                      echo "No changes detected in src/main, gradle/libs.versions.toml, or build.gradle.kts since ${LATEST_TAG:-beginning}. Skipping release."
+                      echo "No changes detected in src/main, gradle/libs.versions.toml, or build.gradle.kts. Skipping release."
                       echo "release_needed=false" >> "$GITHUB_OUTPUT"
                     fi
 
@@ -78,11 +89,13 @@ jobs:
                     VERSION=${TAG#v}
                     EXISTS=false
 
-                    if gh api "/users/${OWNER}/packages/maven/${PKG_ENCODED}/versions" --paginate > /tmp/versions.json 2>/dev/null; then
-                      if jq -e --arg version "${VERSION}" '.[] | select(.name == $version)' /tmp/versions.json > /dev/null; then
-                        echo "Warning: package version ${VERSION} already exists"
-                        EXISTS=true
-                      fi
+                    if ! gh api "/orgs/${OWNER}/packages/maven/${PKG_ENCODED}/versions" --paginate > /tmp/versions.json 2>/dev/null; then
+                      gh api "/users/${OWNER}/packages/maven/${PKG_ENCODED}/versions" --paginate > /tmp/versions.json 2>/dev/null || true
+                    fi
+
+                    if [[ -f /tmp/versions.json ]] && jq -e --arg version "${VERSION}" '.[] | select(.name == $version)' /tmp/versions.json > /dev/null 2>&1; then
+                      echo "Warning: package version ${VERSION} already exists in GitHub Packages"
+                      EXISTS=true
                     fi
 
                     echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
@@ -96,8 +109,8 @@ jobs:
                     TAG: ${{ steps.git-tag.outputs.tag }}
                 run: |
                     if git rev-parse "${TAG}" >/dev/null 2>&1; then
-                      echo "Tag ${TAG} already exists, skipping"
-                      echo "created=false" >> "$GITHUB_OUTPUT"
+                      echo "Tag ${TAG} already exists"
+                      echo "created=true" >> "$GITHUB_OUTPUT"
                       exit 0
                     fi
                     git tag -a "${TAG}" -m "Release ${TAG}"
@@ -105,7 +118,7 @@ jobs:
                     echo "created=true" >> "$GITHUB_OUTPUT"
 
             -   name: Publish to GitHub Packages
-                if: steps.check-changes.outputs.release_needed == 'true' && steps.create-tag.outputs.created == 'true' && steps.git-tag.outputs.exists != 'true'
+                if: steps.check-changes.outputs.release_needed == 'true' && steps.git-tag.outputs.exists != 'true'
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 run: ./gradlew -Pversion="${{ steps.git-tag.outputs.version }}" publish --stacktrace
