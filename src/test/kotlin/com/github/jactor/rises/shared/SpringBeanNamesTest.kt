@@ -1,11 +1,11 @@
 package com.github.jactor.rises.shared
 
-import assertk.Assert
 import assertk.assertThat
-import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
-import assertk.assertions.isNotNull
-import assertk.assertions.isNull
+import com.github.jactor.rises.shared.test.assertAll
+import com.github.jactor.rises.shared.test.equals
+import com.github.jactor.rises.shared.test.named
+import com.github.jactor.rises.shared.test.sized
 import org.junit.jupiter.api.Test
 
 class SpringBeanNamesTest {
@@ -38,7 +38,7 @@ class SpringBeanNamesTest {
     }
 
     @Test
-    fun `should retrieve 4 line names if there is more than 12 names but less than 16`() {
+    fun `should retrieve 4 bean names per line`() {
         springBeanNames.add("com.github.jactor.rises.shared.FooBar0")
         springBeanNames.add("com.github.jactor.rises.shared.FooBar1")
         springBeanNames.add("com.github.jactor.rises.shared.FooBar2")
@@ -54,7 +54,7 @@ class SpringBeanNamesTest {
         springBeanNames.add("com.github.jactor.rises.shared.FooBarC")
         springBeanNames.add("com.github.jactor.rises.shared.FooBarD")
 
-        assertThat(springBeanNames.names).all {
+        assertThat(springBeanNames.names).assertAll {
             this named "names" sized 4
 
             firstOrNull() named "line 1" equals "FooBar0, FooBar1, FooBar2, FooBar3"
@@ -63,9 +63,55 @@ class SpringBeanNamesTest {
             lastOrNull() named "line 4" equals "FooBarC, FooBarD"
         }
     }
-}
 
-fun <T> Assert<T?>.all(function: T.() -> Unit) = isNotNull().given { assertk.assertAll { it.function() } }
-infix fun <T> Assert<T?>.equals(actual: T?): Unit = actual?.let { this.isEqualTo(it) } ?: this.isNull()
-infix fun <T> T?.named(name: String): Assert<T?> = assertThat(actual = this, name = name)
-infix fun <T : Collection<*>> Assert<T?>.sized(size: Int): Unit = this.isNotNull().hasSize(size = size)
+    @Test
+    fun `should retrieve 2 bean names per line`() {
+        val springBeanNames = SpringBeanNames(numberOfBeansOnLine = 2)
+
+        springBeanNames.add("com.github.jactor.rises.shared.FooBar0")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBar1")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBar2")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBar3")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBar4")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBar5")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBar6")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBar7")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBar8")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBar9")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBarA")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBarB")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBarC")
+        springBeanNames.add("com.github.jactor.rises.shared.FooBarD")
+
+        assertThat(springBeanNames.names).assertAll {
+            this named "names" sized 7
+
+            firstOrNull() named "first line" equals "FooBar0, FooBar1"
+            lastOrNull() named "last line" equals "FooBarC, FooBarD"
+        }
+    }
+
+    @Test
+    fun `should filter out lines according to package (4 first names in package) from where add is called`() {
+        val springBeanNames = SpringBeanNames(beanFilter = BeanFilter.PACKAGE_LEVEL_4)
+        springBeanNames.add("com.github.jactor.rises.shared.TheOne")
+        springBeanNames.add("com.github.jactor.sunken.OnlyThree")
+        springBeanNames.add("somewhere.out.there.Shitbag")
+
+        assertThat(springBeanNames.names).assertAll {
+            this named "lines of names added" sized 1
+            firstOrNull() named "first line" equals "TheOne"
+        }
+    }
+
+    @Test
+    fun `should not filter out lines according to package from where add is called`() {
+        springBeanNames.add("com.github.jactor.rises.shared.TheOne")
+        springBeanNames.add("somewhere.out.there.Shitbag")
+
+        assertThat(springBeanNames.names).assertAll {
+            this named "lines of names added" sized 1
+            firstOrNull() named "first line" equals "TheOne, Shitbag"
+        }
+    }
+}
