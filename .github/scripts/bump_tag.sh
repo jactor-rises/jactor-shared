@@ -54,65 +54,79 @@ if [[ "$COMMIT_MSG" == *"new-feature"* ]]; then
   BUMP_MINOR=true
 fi
 
-# Find the latest tag
-latest_tag=$(git tag --list "v[0-9]*.[0-9]*.[0-9]*" | LC_ALL=C sort -V | tail -n 1)
+# Check if current HEAD is already tagged
+head_tag=$(git tag --points-at HEAD "v[0-9]*.[0-9]*.[0-9]*" | LC_ALL=C sort -V | tail -n 1)
 
-if [[ -n "$latest_tag" ]]; then
-  latest_version=${latest_tag#v}
-  IFS='.' read -r latest_major latest_minor latest_patch <<<"$latest_version"
-
-  major_diff=$((gradle_major - latest_major))
-
-  if [[ $major_diff -lt 0 ]]; then
-    echo "Error: Gradle major version ($gradle_major) is behind latest tag major version ($latest_major)"
-    exit 1
-  elif [[ $major_diff -ge 1 ]]; then
-    # Bump to new major version, reset minor and patch
-    major=$gradle_major
-    minor=0
-    patch=0
-  elif $BUMP_MINOR; then
-    # Bump minor version, reset patch to 0
-    major=$latest_major
-    minor=$((latest_minor + 1))
-    patch=0
-  else
-    # Bump patch version
-    major=$latest_major
-    minor=$latest_minor
-    patch=$((latest_patch + 1))
+if [[ -n "$head_tag" ]]; then
+  new_tag="$head_tag"
+  new_version="${head_tag#v}"
+  if $VERBOSE; then
+    echo "Gradle major version: ${gradle_major}"
+    echo "Commit message: ${COMMIT_MSG}"
+    echo "Current HEAD is already tagged with: ${new_tag}"
+    echo "Next tag: ${new_tag}"
   fi
 else
-  # No existing tags, start fresh
-  major=$gradle_major
-  if $BUMP_MINOR; then
-    minor=1
-    patch=0
-  else
-    minor=0
-    patch=0
-  fi
-fi
+  # Find the latest tag
+  latest_tag=$(git tag --list "v[0-9]*.[0-9]*.[0-9]*" | LC_ALL=C sort -V | tail -n 1)
 
-new_version="${major}.${minor}.${patch}"
-new_tag="v${new_version}"
-
-if $VERBOSE; then
-  echo "Gradle major version: ${gradle_major}"
-  echo "Commit message: ${COMMIT_MSG}"
   if [[ -n "$latest_tag" ]]; then
-    echo "Latest tag: ${latest_tag} (major: ${latest_major})"
+    latest_version=${latest_tag#v}
+    IFS='.' read -r latest_major latest_minor latest_patch <<<"$latest_version"
+
+    major_diff=$((gradle_major - latest_major))
+
+    if [[ $major_diff -lt 0 ]]; then
+      echo "Error: Gradle major version ($gradle_major) is behind latest tag major version ($latest_major)"
+      exit 1
+    elif [[ $major_diff -ge 1 ]]; then
+      # Bump to new major version, reset minor and patch
+      major=$gradle_major
+      minor=0
+      patch=0
+    elif $BUMP_MINOR; then
+      # Bump minor version, reset patch to 0
+      major=$latest_major
+      minor=$((latest_minor + 1))
+      patch=0
+    else
+      # Bump patch version
+      major=$latest_major
+      minor=$latest_minor
+      patch=$((latest_patch + 1))
+    fi
   else
-    echo "Latest tag: (none)"
+    # No existing tags, start fresh
+    major=$gradle_major
+    if $BUMP_MINOR; then
+      minor=1
+      patch=0
+    else
+      minor=0
+      patch=0
+    fi
   fi
-  if [[ -n "$latest_tag" ]] && [[ $major_diff -ge 1 ]]; then
-    echo "Bump type: MAJOR (gradle version ahead)"
-  elif $BUMP_MINOR; then
-    echo "Bump type: MINOR (new-feature)"
-  else
-    echo "Bump type: PATCH"
+
+  new_version="${major}.${minor}.${patch}"
+  new_tag="v${new_version}"
+
+  if $VERBOSE; then
+    echo "Gradle major version: ${gradle_major}"
+    echo "Commit message: ${COMMIT_MSG}"
+    if [[ -n "$latest_tag" ]]; then
+      echo "Latest tag: ${latest_tag} (major: ${latest_major})"
+    else
+      echo "Latest tag: (none)"
+    fi
+    if [[ -n "$latest_tag" ]] && [[ $major_diff -ge 1 ]]; then
+      echo "Bump type: MAJOR (gradle version ahead)"
+    elif $BUMP_MINOR; then
+      echo "Bump type: MINOR (new-feature)"
+    else
+      echo "Bump type: PATCH"
+    fi
+    echo "Next tag: ${new_tag}"
   fi
-  echo "Next tag: ${new_tag}"
 fi
 
 if $DRY_RUN; then
@@ -120,9 +134,11 @@ if $DRY_RUN; then
   exit 0
 fi
 
-git tag -a "$new_tag" -m "Release $new_tag"
-if $PUSH; then
-  git push origin "$new_tag"
+if [[ -z "$head_tag" ]]; then
+  git tag -a "$new_tag" -m "Release $new_tag"
+  if $PUSH; then
+    git push origin "$new_tag"
+  fi
 fi
 
 echo "$new_tag"
