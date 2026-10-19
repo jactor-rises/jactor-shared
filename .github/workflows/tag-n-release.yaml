@@ -119,6 +119,20 @@ jobs:
 
             -   name: Publish to GitHub Packages
                 if: steps.check-changes.outputs.release_needed == 'true' && steps.git-tag.outputs.exists != 'true'
+                continue-on-error: true
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 run: ./gradlew -Pversion="${{ steps.git-tag.outputs.version }}" publish --stacktrace
+
+            -   name: Create GitHub Release
+                if: steps.check-changes.outputs.release_needed == 'true'
+                env:
+                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                    TAG: ${{ steps.git-tag.outputs.tag }}
+                run: |
+                    ./gradlew -Pversion="${{ steps.git-tag.outputs.version }}" assemble
+                    if gh release view "${TAG}" >/dev/null 2>&1; then
+                      echo "GitHub release ${TAG} already exists"
+                    else
+                      gh release create "${TAG}" build/libs/*.jar --generate-notes --title "${TAG}"
+                    fi
