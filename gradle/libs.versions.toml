@@ -4,7 +4,7 @@ jackson = "2.22.4"
 junit-platform = "6.0.1"
 jvm = "25"
 kotlin = "2.3.0"
-ktlint = "14.0.1"
+ktlint = "14.2.0"
 springdoc-openapi = "1.8.0"
 versions-plugin = "0.66.0"
 
