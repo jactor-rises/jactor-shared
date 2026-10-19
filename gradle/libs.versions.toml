@@ -1,6 +1,6 @@
 [versions]
 assertk = "0.28.1"
-jackson = "2.21.0"
+jackson = "2.22.4"
 junit-platform = "6.0.1"
 jvm = "25"
 kotlin = "2.3.0"
