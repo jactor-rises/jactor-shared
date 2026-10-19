@@ -5,7 +5,7 @@
 Shared beans between [jactor-persistence](https://github.com/jactor-rises/jactor-persistence) and
 [jactor-web](https://github.com/jactor-rises/jactor-web) http api and json-serialization
 
-will be available using [jitpack.io](https://jitpack.io/#jactor-rises/jactor-shared)
+will be available on [Github packages](https://github.com/jactor-rises/jactor-shared/releases)
 
 ## Http api
 
@@ -20,3 +20,10 @@ Command objects used for manipulation the data model of jactor-persistence
 ## Serialization
 
 ObjectMapper for mapping json to/from dto and command objects
+
+## Misc
+
+- `BooleanExtension.kt`            : Kotlin util with callback according to boolean value
+- `SpringBeanNames.kt`             : Listing of bean names in a spring-context
+- `StackTraceElementExtensions.kt` : Kotlin util on StackTraceElement operations
+- `ThrowableExtensions.kt`         : Kotlin util on Throwable operations
