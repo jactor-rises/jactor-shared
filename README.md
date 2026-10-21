@@ -23,7 +23,9 @@ ObjectMapper for mapping json to/from dto and command objects
 
 ## Misc
 
-- `BooleanExtension.kt`            : Kotlin util with callback according to boolean value
-- `SpringBeanNames.kt`             : Listing of bean names in a spring-context
-- `StackTraceElementExtensions.kt` : Kotlin util on StackTraceElement operations
-- `ThrowableExtensions.kt`         : Kotlin util on Throwable operations
+| Kotlin file | Desription |
+|---|---|
+| `BooleanExtension.kt` | Kotlin extensions with callback according to boolean value |
+| `SpringBeanNames.kt` | Listing of bean names in a spring-context |
+| `StackTraceElementExtensions.kt` | Kotlin extensions on StackTraceElement operations |
+| `ThrowableExtensions.kt` | Kotlin extensions on Throwable operations |
