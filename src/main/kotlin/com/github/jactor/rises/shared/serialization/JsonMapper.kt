@@ -1,15 +1,15 @@
 package com.github.jactor.rises.shared.serialization
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.annotation.JsonInclude
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import java.text.SimpleDateFormat
 
 object JsonMapper {
-    val objectMapper: ObjectMapper = ObjectMapper()
-        .registerModule(JavaTimeModule())
-        .registerModule(Jdk8Module())
-        .setDateFormat(SimpleDateFormat("yyyy-MM-dd"))
-        .setDefaultPropertyInclusion(Include.NON_NULL)
+    val objectMapper: ObjectMapper = JsonMapper.builder()
+        .defaultDateFormat(SimpleDateFormat("yyyy-MM-dd"))
+        .changeDefaultPropertyInclusion { current ->
+            current.withValueInclusion(JsonInclude.Include.NON_NULL)
+        }
+        .build()
 }
