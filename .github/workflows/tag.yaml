@@ -21,7 +21,17 @@ jobs:
                 with:
                     fetch-depth: 0
                     fetch-tags: true
-                    ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+                    ref: refs/heads/main
+
+            -   name: Refresh to latest main after merge
+                if: github.event_name == 'workflow_run'
+                shell: bash
+                run: |
+                    set -euo pipefail
+                    git fetch --no-tags --prune origin main
+                    git checkout -B main origin/main
+                    git reset --hard origin/main
+                    git log -1 --oneline
 
             -   name: Check for releasable changes
                 id: check-changes
