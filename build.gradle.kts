@@ -8,12 +8,11 @@ plugins {
 
 group = "com.github.jactor-rises"
 val cliVersion = providers.gradleProperty("version").orNull?.trim()
-version = cliVersion.takeIf { !it.isNullOrBlank() } ?: "2.0.0-SNAPSHOT"
+version = cliVersion.takeIf { !it.isNullOrBlank() } ?: "3.0.0-SNAPSHOT"
 
 dependencies {
     implementation(libs.springdoc.openapi.ui)
-    implementation(libs.fasterxml.core)
-    implementation(libs.fasterxml.datatype)
+    implementation(libs.jackson.databind)
 
     testImplementation(libs.assertk)
     testImplementation(libs.junit.jupiter)
