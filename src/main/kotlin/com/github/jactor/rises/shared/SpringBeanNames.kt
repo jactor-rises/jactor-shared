@@ -2,25 +2,45 @@ package com.github.jactor.rises.shared
 
 @JvmRecord
 data class SpringBeanNames(
+    private val beanFilter: BeanFilter = BeanFilter.PACKAGE_LEVEL_4,
     private val beanNames: BeanNames = BeanNames(),
+    private val externalBeanNames: BeanNames = BeanNames(),
+    private val jactorPackage: String = "com.github.jactor.rises",
     private val numberOfBeansOnLine: Int = NO_OF_BEANS_ON_LINE,
-    private val beanFilter: BeanFilter = BeanFilter.NONE,
+    private val splitExternalNames: Boolean = false,
 ) {
     companion object {
         const val NO_OF_BEANS_ON_LINE = 4
     }
 
     val names: List<String> get() = beanNames.names
+    val externalNames: List<String> get() = externalBeanNames.names
 
     fun add(name: String) {
         @Suppress("TYPE_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
         addingName(
             beanPackage = name.substringBeforeLast(delimiter = '.'),
-        ).whenTrue {
-            beanNames.add(
-                name = name.substringAfterLast(delimiter = '.'),
-                numberOfBeansOnLine = numberOfBeansOnLine,
-            )
+        ).let {
+            when (splitExternalNames) {
+                false -> it.whenTrue {
+                    beanNames.add(
+                        name = name.substringAfterLast(delimiter = '.'),
+                        numberOfBeansOnLine = numberOfBeansOnLine,
+                    )
+                }
+
+                true -> {
+                    it.whenTrue {
+                        beanNames.add(
+                            name = name.substringAfterLast(delimiter = '.'),
+                            numberOfBeansOnLine = numberOfBeansOnLine,
+                        )
+                    } ?: externalBeanNames.add(
+                        name = name.substringAfterLast(delimiter = '.'),
+                        numberOfBeansOnLine = numberOfBeansOnLine,
+                    )
+                }
+            }
         }
     }
 
