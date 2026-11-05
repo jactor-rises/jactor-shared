@@ -5,8 +5,8 @@ data class SpringBeanNames(
     private val beanFilter: BeanFilter = BeanFilter.PACKAGE_LEVEL_4,
     private val beanNames: BeanNames = BeanNames(),
     private val externalBeanNames: BeanNames = BeanNames(),
-    private val jactorPackage: String = "com.github.jactor.rises",
     private val numberOfBeansOnLine: Int = NO_OF_BEANS_ON_LINE,
+    private val projectPackage: String = "com.github.jactor.rises",
     private val splitExternalNames: Boolean = false,
 ) {
     companion object {
@@ -17,26 +17,27 @@ data class SpringBeanNames(
     val externalNames: List<String> get() = externalBeanNames.names
 
     fun add(name: String) {
-        @Suppress("TYPE_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-        addingName(
+        shouldAddName(
             beanPackage = name.substringBeforeLast(delimiter = '.'),
-        ).let {
+        ).let { (packageName, shouldAdd) ->
+            val simpleName = name.substringAfterLast(delimiter = '.')
+
             when (splitExternalNames) {
-                false -> it.whenTrue {
+                false -> shouldAdd.whenTrue {
                     beanNames.add(
-                        name = name.substringAfterLast(delimiter = '.'),
+                        name = simpleName,
                         numberOfBeansOnLine = numberOfBeansOnLine,
                     )
                 }
 
-                true -> {
-                    it.whenTrue {
-                        beanNames.add(
-                            name = name.substringAfterLast(delimiter = '.'),
-                            numberOfBeansOnLine = numberOfBeansOnLine,
-                        )
-                    } ?: externalBeanNames.add(
-                        name = name.substringAfterLast(delimiter = '.'),
+                true -> when (packageName.contains(projectPackage)) {
+                    true -> beanNames.add(
+                        name = simpleName,
+                        numberOfBeansOnLine = numberOfBeansOnLine,
+                    )
+
+                    false -> externalBeanNames.add(
+                        name = simpleName,
                         numberOfBeansOnLine = numberOfBeansOnLine,
                     )
                 }
@@ -44,8 +45,8 @@ data class SpringBeanNames(
         }
     }
 
-    private fun addingName(beanPackage: String): Boolean = when (beanFilter) {
-        BeanFilter.NONE -> true
+    private fun shouldAddName(beanPackage: String): AddName = when (beanFilter) {
+        BeanFilter.NONE -> AddName(packageName = beanPackage, shouldAdd = true)
         BeanFilter.PACKAGE_LEVEL_4 -> {
             val beanPackageLimited = beanPackage.split(delimiters = arrayOf("."), limit = 4)
             val callerPackage = StackWalker.getInstance()
@@ -59,10 +60,12 @@ data class SpringBeanNames(
 
             val callerPackageLimited = callerPackage.split(delimiters = arrayOf("."), limit = 4)
 
-            beanPackageLimited == callerPackageLimited
+            AddName(packageName = beanPackage, shouldAdd = beanPackageLimited == callerPackageLimited)
         }
     }
 }
+
+private data class AddName(val packageName: String, val shouldAdd: Boolean)
 
 enum class BeanFilter {
     NONE,

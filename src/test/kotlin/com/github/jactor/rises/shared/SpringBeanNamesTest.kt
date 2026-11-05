@@ -132,4 +132,20 @@ class SpringBeanNamesTest {
             this.externalNames.firstOrNull() named "external names" equals "Shitbag"
         }
     }
+
+    @Test
+    fun `should only set internal lines on beans which matches the projefct-setup`() {
+        val springBeanNames = SpringBeanNames(splitExternalNames = true)
+
+        springBeanNames.add("com.github.jactor.rises.shared.TheOne")
+        springBeanNames.add("com.github.some.other.package.NotTheOne")
+        springBeanNames.add("somewhere.out.there.Shitbag")
+
+        assertThat(springBeanNames).assertAll {
+            this.names named "lines of names added" sized 1
+            this.names.firstOrNull() named "names" equals "TheOne"
+            this.externalNames named "lines of external names added" sized 1
+            this.externalNames.firstOrNull() named "external names" equals "NotTheOne, Shitbag"
+        }
+    }
 }
