@@ -19,7 +19,9 @@ class SpringBeanNamesTest {
     }
 
     @Test
-    fun `should retrieve full bean definition if it does not contain package name`() {
+    fun `should retrieve full bean definition if it does not contain package name when no filtering is added`() {
+        val springBeanNames = SpringBeanNames(beanFilter = BeanFilter.NONE)
+
         springBeanNames.add("FooBar")
 
         assertThat(springBeanNames.names).isEqualTo(listOf("FooBar"))
@@ -66,7 +68,7 @@ class SpringBeanNamesTest {
 
     @Test
     fun `should retrieve 2 bean names per line`() {
-        val springBeanNames = SpringBeanNames(numberOfBeansOnLine = 2)
+        val springBeanNames = springBeanNames.copy(numberOfBeansOnLine = 2)
 
         springBeanNames.add("com.github.jactor.rises.shared.FooBar0")
         springBeanNames.add("com.github.jactor.rises.shared.FooBar1")
@@ -93,7 +95,6 @@ class SpringBeanNamesTest {
 
     @Test
     fun `should filter out lines according to package (4 first names in package) from where add is called`() {
-        val springBeanNames = SpringBeanNames(beanFilter = BeanFilter.PACKAGE_LEVEL_4)
         springBeanNames.add("com.github.jactor.rises.shared.TheOne")
         springBeanNames.add("com.github.jactor.sunken.OnlyThree")
         springBeanNames.add("somewhere.out.there.Shitbag")
@@ -105,13 +106,30 @@ class SpringBeanNamesTest {
     }
 
     @Test
-    fun `should not filter out lines according to package from where add is called`() {
+    fun `should not filter out lines according to package from where add is called when no filtering is done`() {
+        val springBeanNames = SpringBeanNames(beanFilter = BeanFilter.NONE)
+
         springBeanNames.add("com.github.jactor.rises.shared.TheOne")
         springBeanNames.add("somewhere.out.there.Shitbag")
 
         assertThat(springBeanNames.names).assertAll {
             this named "lines of names added" sized 1
             firstOrNull() named "first line" equals "TheOne, Shitbag"
+        }
+    }
+
+    @Test
+    fun `should set lines which do not fit with package rule as an external bean`() {
+        val springBeanNames = SpringBeanNames(splitExternalNames = true)
+
+        springBeanNames.add("com.github.jactor.rises.shared.TheOne")
+        springBeanNames.add("somewhere.out.there.Shitbag")
+
+        assertThat(springBeanNames).assertAll {
+            this.names named "lines of names added" sized 1
+            this.names.firstOrNull() named "names" equals "TheOne"
+            this.externalNames named "lines of external names added" sized 1
+            this.externalNames.firstOrNull() named "external names" equals "Shitbag"
         }
     }
 }
