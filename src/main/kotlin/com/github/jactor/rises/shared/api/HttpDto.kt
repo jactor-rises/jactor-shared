@@ -9,9 +9,7 @@ import java.util.UUID
 data class BlogDto(
     @param:Schema(description = "Standard lagrede data") override val persistentDto: PersistentDto = PersistentDto(),
     @param:Schema(description = "Tittel") val title: String? = null,
-    @property:Deprecated("will be removed in future version and username will replace it")
     @param:Schema(description = "Id til bruker som presenterer bloggen") val userId: UUID? = null,
-    @param:Schema(description = "The user name of the user presenting this blog") val username: String? = null,
 ) : PersistentData
 
 @JvmRecord
@@ -28,9 +26,7 @@ data class BlogEntryDto(
 data class GuestBookDto(
     @param:Schema(description = "Standard lagrede data") override val persistentDto: PersistentDto = PersistentDto(),
     @param:Schema(description = "Navn for gjestebok") val title: String? = null,
-    @property:Deprecated("will be removed in future version and username will replace it")
     @param:Schema(description = "Id til bruker") val userId: UUID? = null,
-    @param:Schema(description = "The user name of the user owning the guest book") val username: String? = null,
 ) : PersistentData
 
 @JvmRecord
@@ -47,7 +43,6 @@ data class GuestBookEntryDto(
 data class UserDto(
     @param:Schema(description = "Standard lagrede data") override val persistentDto: PersistentDto = PersistentDto(),
     @param:Schema(description = "Epostadresse") val emailAddress: String? = null,
-    @property:Deprecated("will be removed in future version and username will replace it")
     @param:Schema(description = "Id thil brukerens persondata") val personId: UUID? = null,
     @param:Schema(description = "Brukernavn") val username: String? = null,
     @param:Schema(description = "Brukerstatus") val userType: UserType = UserType.ACTIVE,
