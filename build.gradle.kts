@@ -11,7 +11,7 @@ val cliVersion = providers.gradleProperty("version").orNull?.trim()
 version = cliVersion.takeIf { !it.isNullOrBlank() } ?: "3.0.0-SNAPSHOT"
 
 dependencies {
-    implementation(libs.springdoc.openapi.ui)
+    api(libs.swagger.annotations)
     implementation(libs.jackson.databind)
 
     testImplementation(libs.assertk)
