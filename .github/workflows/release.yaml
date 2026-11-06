@@ -56,16 +56,46 @@ jobs:
                     VERSION="${TAG#v}"
                     OWNER=${GITHUB_REPOSITORY%%/*}
                     PACKAGE_NAME="${GROUP_ID}.${ARTIFACT_ID}"
-                    PKG_ENCODED=$(printf '%s' "${PACKAGE_NAME}" | jq -sRr @uri)
                     EXISTS=false
+                    PACKAGE_LOOKUP_SUCCEEDED=false
+                    PACKAGE_NAMES=("${PACKAGE_NAME}" "${GROUP_ID}:${ARTIFACT_ID}" "${ARTIFACT_ID}")
+                    PACKAGES_JSON=""
 
-                    if ! gh api "/orgs/${OWNER}/packages/maven/${PKG_ENCODED}/versions" --paginate > /tmp/versions.json 2>/dev/null; then
-                      gh api "/users/${OWNER}/packages/maven/${PKG_ENCODED}/versions" --paginate > /tmp/versions.json 2>/dev/null || true
+                    if ! PACKAGES_JSON=$(gh api --paginate --slurp "/orgs/${OWNER}/packages?package_type=maven&per_page=100" 2>/dev/null); then
+                      PACKAGES_JSON=$(gh api --paginate --slurp "/users/${OWNER}/packages?package_type=maven&per_page=100" 2>/dev/null) || true
                     fi
 
-                    if [[ -f /tmp/versions.json ]] && jq -e --arg version "${VERSION}" '.[] | select(.name == $version)' /tmp/versions.json > /dev/null 2>&1; then
-                      echo "Warning: package version ${VERSION} already exists in GitHub Packages"
-                      EXISTS=true
+                    if [[ -n "${PACKAGES_JSON}" ]]; then
+                      while IFS= read -r package_name; do
+                        [[ -n "${package_name}" ]] && PACKAGE_NAMES+=("${package_name}")
+                      done < <(
+                        jq -r \
+                          --arg coordinate "${PACKAGE_NAME}" \
+                          --arg artifact "${ARTIFACT_ID}" \
+                          --arg repository "${GITHUB_REPOSITORY}" \
+                          'add | .[] | select(.name == $coordinate or .name == ($coordinate | gsub("\\."; ":")) or .name == $artifact or .repository.full_name == $repository) | .name' \
+                          <<< "${PACKAGES_JSON}"
+                      )
+                    fi
+
+                    for package_name in "${PACKAGE_NAMES[@]}"; do
+                      PKG_ENCODED=$(printf '%s' "${package_name}" | jq -sRr @uri)
+                      VERSIONS_JSON=""
+
+                      if ! VERSIONS_JSON=$(gh api --paginate --slurp "/orgs/${OWNER}/packages/maven/${PKG_ENCODED}/versions?per_page=100" 2>/dev/null); then
+                        VERSIONS_JSON=$(gh api --paginate --slurp "/users/${OWNER}/packages/maven/${PKG_ENCODED}/versions?per_page=100" 2>/dev/null) || continue
+                      fi
+
+                      PACKAGE_LOOKUP_SUCCEEDED=true
+                      if jq -e --arg version "${VERSION}" 'add | any(.[]; .name == $version)' <<< "${VERSIONS_JSON}" > /dev/null; then
+                        echo "GitHub Packages version ${VERSION} already exists; skipping publication."
+                        EXISTS=true
+                        break
+                      fi
+                    done
+
+                    if [[ "${PACKAGE_LOOKUP_SUCCEEDED}" != "true" ]]; then
+                      echo "::warning::Could not verify whether package version ${VERSION} already exists; attempting publication."
                     fi
 
                     echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
