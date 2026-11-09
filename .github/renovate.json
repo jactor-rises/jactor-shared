@@ -1,0 +1,33 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended",
+        ":semanticCommits"
+    ],
+    "commitMessagePrefix": "#54: ",
+    "platformAutomerge": true,
+    "automergeType": "pr",
+    "timezone": "Europe/Oslo",
+    "schedule": [ "before 11:00am" ],
+    "prCreation": "immediate",
+    "prHourlyLimit": 2,
+    "prConcurrentLimit": 3,
+    "gradle": {
+        "enabled": true
+    },
+    "packageRules": [
+        {
+            "matchManagers": ["gradle"],
+            "matchUpdateTypes": ["minor", "patch"],
+            "automerge": true,
+            "groupName": "Gradle minor and patch updates"
+        },
+        {
+            "matchManagers": ["gradle"],
+            "matchUpdateTypes": ["major"],
+            "automerge": false,
+            "groupName": "Gradle major updates",
+            "labels": ["major-update", "dependencies"]
+        }
+    ]
+}
