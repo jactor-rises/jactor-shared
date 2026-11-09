@@ -53,6 +53,9 @@ enum class UserType {
     @Schema(description = "Aktiv bruker")
     ACTIVE,
 
+    @Schema(description = "Bruker med administrative rettighet")
+    ADMIN,
+
     @Schema(description = "Inaktiv bruker")
     INACTIVE,
 }
