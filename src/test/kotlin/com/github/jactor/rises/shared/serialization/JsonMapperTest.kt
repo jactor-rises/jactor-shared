@@ -14,6 +14,7 @@ import com.github.jactor.rises.shared.api.PersistentDto
 import com.github.jactor.rises.shared.api.PersonDto
 import com.github.jactor.rises.shared.api.UpdateBlogTitleCommand
 import com.github.jactor.rises.shared.api.UserDto
+import com.github.jactor.rises.shared.api.UserRole
 import com.github.jactor.rises.shared.test.roundDownToMinute
 import org.junit.jupiter.api.Named
 import org.junit.jupiter.params.ParameterizedTest
@@ -98,7 +99,7 @@ class JsonMapperTest {
                 emailAddress = "somewhat@strange.com",
                 personId = UUID.randomUUID(),
                 username = "strangeuser",
-                userRole = com.github.jactor.rises.shared.api.UserRole.ACTIVE,
+                userRole = UserRole.MEMBER,
             ) to UserDto::class.java,
             PersonDto(
                 persistentDto = initPersistentDto(),
