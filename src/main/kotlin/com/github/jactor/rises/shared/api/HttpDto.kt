@@ -83,17 +83,15 @@ data class AddressDto(
 @JvmRecord
 @Schema(description = "Alle persistente data som er felles i jactor-modules")
 data class PersistentDto(
-    @param:Schema(description = "identifikator til lagrede data") val id: UUID? = null,
-    @param:Schema(description = "brukeren som opprettet dataene") val createdBy: String? = null,
-    @param:Schema(description = "når dataene ble opprettet") val timeOfCreation: LocalDateTime? = null,
-    @param:Schema(description = "brukeren som endret dataene") val modifiedBy: String? = null,
-    @param:Schema(description = "når dataene ble endret") val timeOfModification: LocalDateTime? = null,
+    @param:Schema(description = "Identifikator til lagrede data") val id: UUID? = null,
+    @param:Schema(description = "Brukeren som opprettet dataene") val createdBy: String? = null,
+    @param:Schema(description = "Når dataene ble opprettet") val timeOfCreation: LocalDateTime? = null,
+    @param:Schema(description = "Brukeren som endret dataene") val modifiedBy: String? = null,
+    @param:Schema(description = "Når dataene ble endret") val timeOfModification: LocalDateTime? = null,
 )
 
 interface PersistentData {
     val persistentDto: PersistentDto
-
     fun harIdentifikator(): Boolean = persistentDto.id != null
-
     fun harIkkeIdentifikator(): Boolean = persistentDto.id == null
 }
