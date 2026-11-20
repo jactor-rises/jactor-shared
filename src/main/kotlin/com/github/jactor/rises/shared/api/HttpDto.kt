@@ -45,19 +45,16 @@ data class UserDto(
     @param:Schema(description = "Epostadresse") val emailAddress: String? = null,
     @param:Schema(description = "Id thil brukerens persondata") val personId: UUID? = null,
     @param:Schema(description = "Brukernavn") val username: String? = null,
-    @param:Schema(description = "Brukerstatus") val userType: UserType = UserType.ACTIVE,
+    @param:Schema(description = "Brukerstatus") val userRole: UserRole = UserRole.ACTIVE,
 ) : PersistentData
 
 @Schema(description = "Metadata for ulike brukertyper")
-enum class UserType {
+enum class UserRole {
     @Schema(description = "Aktiv bruker")
     ACTIVE,
 
-    @Schema(description = "Bruker med administrative rettighet")
-    ADMIN,
-
-    @Schema(description = "Inaktiv bruker")
-    INACTIVE,
+    @Schema(description = "Vanlig bruker")
+    MEMBER,
 }
 
 @JvmRecord

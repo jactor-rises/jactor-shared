@@ -98,7 +98,7 @@ class JsonMapperTest {
                 emailAddress = "somewhat@strange.com",
                 personId = UUID.randomUUID(),
                 username = "strangeuser",
-                userType = com.github.jactor.rises.shared.api.UserType.ACTIVE,
+                userRole = com.github.jactor.rises.shared.api.UserRole.ACTIVE,
             ) to UserDto::class.java,
             PersonDto(
                 persistentDto = initPersistentDto(),
