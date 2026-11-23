@@ -9,21 +9,31 @@ on:
 jobs:
     build-test:
         runs-on: ubuntu-latest
+
         steps:
             -   name: Checkout
                 uses: actions/checkout@v7
                 with:
                     fetch-depth: 0
 
+            -   name: Extract JVM version from libs.versions.toml
+                id: java-version
+                run: |
+                    JVM_VERSION=$(grep '^\s*jvm\s*=' gradle/libs.versions.toml | sed 's/.*"\([^"]*\)".*/\1/')
+                    echo "version=$JVM_VERSION" >> $GITHUB_OUTPUT
+
             -   name: Set up JDK
                 uses: actions/setup-java@v6
                 with:
-                    distribution: temurin
-                    java-version: '25'
                     cache: gradle
+                    distribution: temurin
+                    java-version: ${{ steps.java-version.outputs.version }}
 
             -   name: Set up Gradle
                 uses: gradle/actions/setup-gradle@v6
 
+            -   name: ktlint check
+                run: ./gradlew ktlintCheck
+
             -   name: Build and test
-                run: ./gradlew clean ktlintCheck test build
+                run: ./gradlew test build --stacktrace
