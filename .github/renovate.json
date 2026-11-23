@@ -4,7 +4,7 @@
         "config:recommended",
         ":semanticCommits"
     ],
-    "commitMessagePrefix": "#54: ",
+    "commitMessagePrefix": "#62: ",
     "platformAutomerge": false,
     "automergeType": "pr",
     "timezone": "Europe/Oslo",
@@ -20,13 +20,13 @@
             "matchManagers": ["gradle"],
             "matchUpdateTypes": ["minor", "patch"],
             "automerge": false,
-            "groupName": "Gradle minor and patch updates"
+            "groupName": "Minor and patch updates"
         },
         {
             "matchManagers": ["gradle"],
             "matchUpdateTypes": ["major"],
             "automerge": false,
-            "groupName": "Gradle major updates",
+            "groupName": "Major updates",
             "labels": ["major-update", "dependencies"]
         }
     ]
