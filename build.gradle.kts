@@ -10,6 +10,25 @@ group = "com.github.jactor-rises"
 val cliVersion = providers.gradleProperty("version").orNull?.trim()
 version = cliVersion.takeIf { !it.isNullOrBlank() } ?: "4.0.0-SNAPSHOT"
 
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/OWNER/REPOSITORY")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+
+    publications {
+        register<MavenPublication>("gpr") {
+            from(components["java"])
+        }
+    }
+}
+
 dependencies {
     api(libs.swagger.annotations)
     implementation(libs.jackson.databind)

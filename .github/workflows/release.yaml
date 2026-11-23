@@ -119,6 +119,7 @@ jobs:
                 if: steps.release-tag.outputs.release_needed == 'true' && steps.release-tag.outputs.pkg_exists != 'true'
                 continue-on-error: true
                 env:
+                    GITHUB_ACTOR: ${{ github.actor }}
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 run: ./gradlew -Pversion="${{ steps.release-tag.outputs.version }}" publish --stacktrace
 
