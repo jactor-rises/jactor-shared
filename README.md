@@ -2,6 +2,8 @@
 
 [![build and test](https://github.com/jactor-rises/jactor-shared/actions/workflows/build-test.yaml/badge.svg?label=build%20and%20test&cachebust=20260208)](https://github.com/jactor-rises/jactor-shared/actions/workflows/build-test.yaml)
 
+[![jactor-shared](https://img.shields.io/github/v/release/jactor-rises/jactor-shared)](https://github.com/jactor-rises/jactor-shared/releases)
+
 Shared beans between [jactor-persistence](https://github.com/jactor-rises/jactor-persistence) and
 [jactor-web](https://github.com/jactor-rises/jactor-web) http api and json-serialization
 
